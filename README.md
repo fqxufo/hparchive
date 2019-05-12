@@ -7,6 +7,6 @@
 
 直接pip install requests-html即可，会自动安装其他需要的库
 
-运行python hparchive.py 会自动在脚本目录生成fav.html及hparchive目录，fav.html即是包含所有收藏贴链接的目录
+运行python hparchive.py 会自动在脚本目录生成fav.html及hparchive文件夹，fav.html即是包含所有收藏贴链接的目录
 
 
