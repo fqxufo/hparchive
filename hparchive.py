@@ -6,7 +6,7 @@ import os
 import time
 import re
 import sys
-import webbrowser
+import hashlib
 
 
 if not os.path.exists('./hparchive'):
@@ -34,8 +34,9 @@ def userlogin():
     usernameinput = input('用户名： ')
     pwdinput = input('密码: ')
     username = quote_from_bytes(usernameinput.encode('gbk'))
-    pwd = quote_from_bytes(pwdinput.encode('gbk'))
-    data = {'username': username, 'password': pwd}
+    # pwd = quote_from_bytes(pwdinput.encode('gbk'))
+    pwd = hashlib.md5(pwdinput.encode('gbk')).hexdigest()
+    data = {'loginfield':'username','username': username, 'password': pwd}
     print('按数字选择安全提问,没有就直接回车或者选择0')
     for question in questionids:
         print(question,':  ',questionids[question])
@@ -52,26 +53,29 @@ def userlogin():
     print('安全提问: ',questionids[questionid])
     if (questionid != '0'):
         answerinput = input('输入安全提问答案:')
-        answer = quote_from_bytes(answerinput.encode('gbk'))
-        data['answer'] = answer
+        answer = answerinput.encode('gbk')
         data['questionid'] = questionid
+        data['answer'] = answer
+        
     
-    print(data)
+    # print(data)
     loginurl = 'https://www.hi-pda.com/forum/logging.php?action=login&loginsubmit=yes&inajax=1'
     result = hpsession.post(loginurl, data=data)
+    # print(result.request.body)
+    # print(result.request.headers)
     resultgbk = result.content.decode('gbk')
+    # print(resultgbk)
     if '密码错误次数过多' in resultgbk:
         print('错误次数过多,请15分钟后再试,建议使用浏览器登录查看详情')
-        time.sleep(3)
-        webbrowser.open('https://www.hi-pda.com/forum/index.php')
         sys.exit(0)
     
     if '可以尝试' in resultgbk:
         print(resultgbk)
-        time.sleep(2)
         sys.exit(0)
     
-
+    if '请填写安全提问以及正确的答案' in resultgbk or '选择错误' in resultgbk:
+        print('没有填写安全提问或者答案不正确')
+        sys.exit(0)
 
 
 
