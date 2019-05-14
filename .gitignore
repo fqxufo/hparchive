@@ -1,2 +1,4 @@
 
 *.html
+.vscode/.ropeproject/config.py
+.vscode/.ropeproject/objectdb
