@@ -12,7 +12,7 @@ import hashlib
 if not os.path.exists('./hparchive'):
     os.makedirs('./hparchive')
 
-favlist = {}
+tidlist = {}
 useragent = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.1 Safari/605.1.15'}
 hpsession = HTMLSession()
@@ -79,44 +79,51 @@ def userlogin():
 
 
 
-def getfav(page=1):
-    '''从页面获取收藏帖子标题及tid，确定总收藏页数maxpagenum'''
-    if (page == 1):
-        favurl = 'https://www.hi-pda.com/forum/my.php?item=favorites&type=thread'
-    else:
-        favurl = 'https://www.hi-pda.com/forum/my.php?item=favorites&type=thread&page=' + \
-            str(page)
+def getlist(page=1,listtype = '-fav'):
+    '''从我的收藏/我的帖子页面获取帖子标题及tid'''
+    baseurl = 'https://www.hi-pda.com/forum/my.php?item=favorites&type=thread'
+    if (listtype == '-mypost'):
+        baseurl = 'https://www.hi-pda.com/forum/my.php?item=threads'
 
-    fav = hpsession.get(favurl)
+    if (page == 1):
+        listurl = baseurl
+    else:
+        listurl = baseurl + '&page=' + str(page)
+
+    listpage = hpsession.get(listurl)
+    print(listurl)
     
     tbodysel = '#wrap > div.main > div > div.threadlist.datalist > form > table > tbody'
-
-    tbody = fav.html.find(tbodysel, first=True)
-    favas = tbody.find('tr > th > a')
-
-    for a in favas:
-        tid = a.attrs['href'].split('tid=')[1].split('&')[0]
-        favlist[tid] = a.text
-
-    if (page == 1):
-        maxpagesel = '#wrap > div.main > div > div.threadlist.datalist > form > table > tbody > tr:nth-child(76) > td:nth-child(3) > div > a:nth-last-child(2)'
-        maxpageanchor = fav.html.find(maxpagesel, first=True)
-        if (maxpageanchor == None):
-            maxpage = 1
-        else:
-            maxpage = int(maxpageanchor.text.split('page=')[0])
-
-        return maxpage
-
-
-
-def genTOC():
-    '''生成目录HTML文件'''
-    tocs = ''
-    for i in favlist:
-        tocs = tocs + '<a href="./hparchive/' + str(i) +'-1.html" target="_blank">' + favlist[i] + '</a><br>' + '\n'
+    if (listtype == '-mypost'):
+        tbodysel = 'tbody'
+    print(listtype,tbodysel)
     
-    with open('fav.html','w') as f:
+
+    tbody = listpage.html.find(tbodysel, first=True)
+    listitem = tbody.find('tr > th > a')
+    print(tidlist)
+
+    for a in listitem:
+        tid = a.attrs['href'].split('tid=')[1].split('&')[0]
+        tidlist[tid] = a.text
+    nextpage = listpage.html.find('a.next')
+    hasnextpage = len(nextpage) > 0
+    time.sleep(0.1)
+    if (hasnextpage):
+        getlist(page=page+1,listtype=listtype)
+
+
+
+def genTOC(listtype='-fav'):
+    '''生成目录HTML文件'''
+    filename = 'fav.html'
+    if (listtype == '-mypost'):
+        filename = 'mypost.html'
+    tocs = ''
+    for i in tidlist:
+        tocs = tocs + '<a href="./hparchive/' + str(i) +'-1.html" target="_blank">' + tidlist[i] + '</a><br>' + '\n'
+    
+    with open(filename,'w',encoding='utf-8') as f:
         f.write(tocs) 
         
 
@@ -139,14 +146,15 @@ def savethread(tid,page=1):
     r2 = tid + r'-\1.html'   #替换成tid-页码.html的形式,即指向本地的html文件
     modhtml = re.sub(r1,r2,r.html.html)
     if (r.status_code != 200):
-        print(favlist[tid])
+        print(tidlist[tid])
     with open('./hparchive/' + str(tid) + '-' + str(page) + '.html','w',encoding='gb18030') as f:
         #直接使用utf-8会乱码,全部转换utf-8可能会有兼容问题,所以还是保持原编码不变,因为gbk在某些特殊字符会报错,使用gb18030
         f.write(modhtml)
     
-    hasnextpage = r.html.find('a.next')
+    nextpage = r.html.find('a.next')
+    hasnextpage = len(nextpage) > 0
     time.sleep(0.1)
-    if (len(hasnextpage) > 1 ):
+    if (hasnextpage ):
         savethread(tid,page=page+1)
 
     
@@ -154,14 +162,20 @@ def savethread(tid,page=1):
 
 
 def work():
+    listtype = '-fav'
+    if (len(sys.argv) > 2) :
+        print ('参数错误,正确用法:python hparchive (-fav,-mypost)')
+        sys.exit(1)
+    if (len(sys.argv) == 2):
+        listtype = sys.argv[1]
+        if listtype not in ['-fav','-mypost']:
+            print('参数错误,-fav收藏帖,-mypost我的发帖')
+            sys.exit(1) 
     userlogin()
-    maxpagenum = getfav(page=1)
-    if maxpagenum > 1:
-        for i in range(2, maxpagenum + 1):
-            getfav(page=i)
-    print('一共' + str(len(favlist)) + '个收藏贴')
-    genTOC()
-    for tid in tqdm(favlist):
+    getlist(page=1,listtype=listtype)
+    print('一共' + str(len(tidlist)) + '个贴子')
+    genTOC(listtype=listtype)
+    for tid in tqdm(tidlist):
         savethread(tid)
         time.sleep(0.3)
 
