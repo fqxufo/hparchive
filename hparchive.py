@@ -91,17 +91,17 @@ def getlist(page=1,listtype = '-fav'):
         listurl = baseurl + '&page=' + str(page)
 
     listpage = hpsession.get(listurl)
-    print(listurl)
+    # print(listurl)
     
     tbodysel = '#wrap > div.main > div > div.threadlist.datalist > form > table > tbody'
     if (listtype == '-mypost'):
         tbodysel = 'tbody'
-    print(listtype,tbodysel)
+    # print(listtype,tbodysel)
     
 
     tbody = listpage.html.find(tbodysel, first=True)
     listitem = tbody.find('tr > th > a')
-    print(tidlist)
+    # print(tidlist)
 
     for a in listitem:
         tid = a.attrs['href'].split('tid=')[1].split('&')[0]
