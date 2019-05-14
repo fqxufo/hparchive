@@ -13,4 +13,7 @@
 
 `python hparchive.py -mypost` 会在脚本目录生成mypost.html及hparchive文件夹，mypost.html即是包含所有"我的发贴"链接的目录
 
+第二个参数加 --print 可以下载打印版网页,速度更快,但是只有前两页内容,不完整
+例如: `python hparchive.py -fav --print`
+
 
