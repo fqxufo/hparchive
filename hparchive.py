@@ -127,10 +127,18 @@ def genTOC(listtype='-fav'):
         
 
 
-def savethread(tid,page=1):
+def savethread(tid,page=1,pagetype='norm'):
     '''下载tid对应的帖子html,如果是多页的帖子会自动连续下载,直到
     页面里找不到下一页按钮时停止'''
     rawurl = 'https://www.hi-pda.com/forum/viewthread.php?tid='
+
+    if pagetype == '--print':
+        printableurl = rawurl + str(tid) + '&action=printable'
+        printr = hpsession.get(printableurl)
+        with open('./hparchive/' + str(tid) + '-' + str(page) + '.html','w',encoding='gb18030') as f:
+            f.write(printr.html.html)
+        return 
+
     if (page == 1):
         
         threadurl = rawurl + str(tid)
@@ -162,14 +170,28 @@ def savethread(tid,page=1):
 
 def work():
     listtype = '-fav'
-    if (len(sys.argv) > 2) :
-        print ('参数错误,正确用法:python hparchive (-fav,-mypost)')
+    pagetype = 'norm'
+    helpmsg = '参数错误,-fav收藏帖,-mypost我的发帖,--print加载打印版网页(只有前两页内容，但是速度较快)'
+    if (len(sys.argv) > 3):
+        print ('参数错误,正确用法:python hparchive (-fav,-mypost,--print)')
         sys.exit(1)
-    if (len(sys.argv) == 2):
+    
+    elif (len(sys.argv) == 3):
+        listtype = sys.argv[1]
+        pagetype = sys.argv[2]
+        if listtype not in ['-fav','-mypost']:
+            print(helpmsg)
+            sys.exit(1) 
+        elif pagetype != '--print':
+            print(helpmsg)
+            sys.exit(1)
+
+    elif (len(sys.argv) == 2):
         listtype = sys.argv[1]
         if listtype not in ['-fav','-mypost']:
-            print('参数错误,-fav收藏帖,-mypost我的发帖')
+            print(helpmsg)
             sys.exit(1) 
+
     userlogin()
     getlist(page=1,listtype=listtype)
     print('一共' + str(len(tidlist)) + '个贴子')
@@ -177,7 +199,7 @@ def work():
 
     is_windows = (os.name == 'nt') #判断系统类型，windows下进度条会有问题，设置ascii为True
     for tid in tqdm(tidlist,ascii=is_windows):
-        savethread(tid)
+        savethread(tid,page=1,pagetype=pagetype)
         time.sleep(0.3)
 
 
