@@ -1,7 +1,6 @@
 # coding=utf-8
 from requests_html import HTMLSession
 from tqdm import tqdm
-from urllib.parse import quote_from_bytes
 import os
 import time
 import re
@@ -33,9 +32,9 @@ def userlogin():
     }
     usernameinput = input('用户名： ')
     pwdinput = input('密码: ')
-    username = quote_from_bytes(usernameinput.encode('gbk'))
-    # pwd = quote_from_bytes(pwdinput.encode('gbk'))
-    pwd = hashlib.md5(pwdinput.encode('gbk')).hexdigest()
+    username = usernameinput.encode('gbk')
+    # pwd = hashlib.md5(pwdinput.encode('gbk')).hexdigest()
+    pwd = pwdinput.encode('gbk')
     data = {'loginfield':'username','username': username, 'password': pwd}
     print('按数字选择安全提问,没有就直接回车或者选择0')
     for question in questionids:
@@ -175,7 +174,9 @@ def work():
     getlist(page=1,listtype=listtype)
     print('一共' + str(len(tidlist)) + '个贴子')
     genTOC(listtype=listtype)
-    for tid in tqdm(tidlist):
+
+    is_windows = (os.name == 'nt') #判断系统类型，windows下进度条会有问题，设置ascii为True
+    for tid in tqdm(tidlist,ascii=is_windows):
         savethread(tid)
         time.sleep(0.3)
 
