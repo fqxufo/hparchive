@@ -58,7 +58,7 @@ def userlogin():
         
     
     # print(data)
-    loginurl = 'https://www.hi-pda.com/forum/logging.php?action=login&loginsubmit=yes&inajax=1'
+    loginurl = 'https://www.4d4y.com/forum/logging.php?action=login&loginsubmit=yes&inajax=1'
     result = hpsession.post(loginurl, data=data)
     # print(result.request.body)
     # print(result.request.headers)
@@ -80,9 +80,9 @@ def userlogin():
 
 def getlist(page=1,listtype = '-fav'):
     '''从我的收藏/我的帖子页面获取帖子标题及tid'''
-    baseurl = 'https://www.hi-pda.com/forum/my.php?item=favorites&type=thread'
+    baseurl = 'https://www.4d4y.com/forum/my.php?item=favorites&type=thread'
     if (listtype == '-mypost'):
-        baseurl = 'https://www.hi-pda.com/forum/my.php?item=threads'
+        baseurl = 'https://www.4d4y.com/forum/my.php?item=threads'
 
     if (page == 1):
         listurl = baseurl
@@ -130,7 +130,7 @@ def genTOC(listtype='-fav'):
 def savethread(tid,page=1,pagetype='norm'):
     '''下载tid对应的帖子html,如果是多页的帖子会自动连续下载,直到
     页面里找不到下一页按钮时停止'''
-    rawurl = 'https://www.hi-pda.com/forum/viewthread.php?tid='
+    rawurl = 'https://www.4d4y.com/forum/viewthread.php?tid='
 
     if pagetype == '--print':
         printableurl = rawurl + str(tid) + '&action=printable'
